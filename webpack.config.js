@@ -4,7 +4,7 @@
 // we will give it paths to our code and to where we would like it to output builds
 // We can specify tons of different things in this file
 
-// webpack uses Node.js to build our application
+const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
 const path = require("path");
 
@@ -22,10 +22,46 @@ const webpack = require("webpack");
 // By default, webpack wants to run in production mode. In this mode, webpack will minify our code for us automatically, along with some other nice additions. 
 // We want our code to run in development mode
 module.exports = {
-    entry: './assets/js/script.js',
+    entry: {
+        // add entry points so webpack will know where to start the the bundle of dependencies
+        app: "./assets/js/script.js",
+        events: "./assets/js/events.js",
+        schedule: "./assets/js/schedule.js",
+        tickets: "./assets/js/tickets.js"
+    },
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: 'main.bundle.js'
+        // Our build step will create a series of bundled files, one for each listing in the entry object
+        // The name of each attribute in the entry object will be used in place of [name] in each bundle.js file that is created
+        filename: "[name].bundle.js"
+    },
+    module: {
+        // identify the type of files to pre-process using the test property through a regular expression
+        rules: [
+            {
+                test: /\.jpg$/i,
+                // this is where the loader is implemented
+                use: [
+                    {
+                        loader: "file-loader",
+                        // returns the name of the file with the file extension 
+                        options: {
+                            name(file) {
+                                return "[path][name].[ext]"
+                            },
+                            // function changes our assignment URL by replacing the ../ from our require() statement with /assets/
+                            publicPath: function (url) {
+                                return url.replace("../", "/assets/")
+                            }
+                        }
+                    },
+                    // optimize the images
+                    {
+                        loader: 'image-webpack-loader'
+                    }
+                ]
+            }
+        ]
     },
     // we want webpack to use the jQuery package so we need to use a plugin
     // tell webpack which plugins we want to use
@@ -36,6 +72,12 @@ module.exports = {
             $: "jquery",
             jQuery: "jquery"
         }),
+
+        // configure analyzerMode with a value of "static"
+        // which will output an HTML file called report.html
+        new BundleAnalyzerPlugin({
+            analyzerMode: "static", // the report outputs to an HTML file in the dist folder
+        })
     ],
     mode: 'development'
 };
