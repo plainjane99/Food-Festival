@@ -10,6 +10,9 @@ const path = require("path");
 
 const webpack = require("webpack");
 
+// for the manifest plugin to work
+const WebpackPwaManifest = require("webpack-pwa-manifest");
+
 // create the main configuration object within our file
 // write options within this object that tell webpack what to do
 
@@ -77,6 +80,40 @@ module.exports = {
         // which will output an HTML file called report.html
         new BundleAnalyzerPlugin({
             analyzerMode: "static", // the report outputs to an HTML file in the dist folder
+        }),
+
+        // manifest plugin
+        // invoke constructor, instantiate WebpackPwaManifest
+        // argument is an object
+        new WebpackPwaManifest({
+            // name for desktop app icon
+            name: "Food Event",
+            // name for pwa icon
+            short_name: "Foodies",
+            description: "An app that allows you to view upcoming food events.",
+            // specify homepage for the PWA relative to the location of the manifest file
+            start_url: "../index.html",
+            // splash screen's background color
+            background_color: "#01579b",
+            // tool bar color
+            theme_color: "#ffffff",
+            // tells webpack whether or not it should generate unique fingerprints
+            // so that each time a new manifest is generated,
+            // it looks like this: manifest.lhge325d.json
+            fingerprints: false,
+            // determines whether the link to the manifest.json is added to the HTML. 
+            // Because we are not using fingerprints, we can also set inject to be false
+            // We will hardcode the path to the manifest.json instead, just like we would in an application without webpack
+            inject: false,
+            // different sizes of icons for the app
+            icons: [{
+                // path to the icon image
+                src: path.resolve("assets/img/icons/icon-512x512.png"),
+                // take the src image and create icons with the dimensions listed in sizes
+                sizes: [96, 128, 192, 256, 384, 512],
+                // designates where the icons will be sent after the creation of the web manifest
+                destination: path.join("assets", "icons")
+            }]
         })
     ],
     mode: 'development'
